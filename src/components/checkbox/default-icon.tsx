@@ -1,0 +1,19 @@
+import React, { memo } from 'react'
+import { NativeProps, withNativeProps } from '../../utils/native-props'
+import { CheckboxSize, getIconFontSize } from './icon-utils'
+
+export const DefaultIcon = memo<NativeProps & { size?: CheckboxSize }>(
+  ({ size, ...props }) => {
+    return withNativeProps(
+      props,
+      <svg viewBox='0 0 40 40' style={{ fontSize: getIconFontSize(size) }}>
+        <path
+          d='M20,9 C26.0752953,9 31,13.9247047 31,20 C31,26.0752953 26.0752953,31 20,31 C13.9247047,31 9,26.0752953 9,20 C9,13.9247047 13.9247047,9 20,9 Z'
+          fill='none'
+          stroke='currentColor'
+          strokeWidth='2'
+        />
+      </svg>
+    )
+  }
+)

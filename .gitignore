@@ -34,3 +34,6 @@
 .pnp.*
 
 bun.lock*
+
+# Test directories
+antd-mobile-test/
