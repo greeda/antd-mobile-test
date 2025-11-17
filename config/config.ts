@@ -52,6 +52,12 @@ const config: IConfig = {
       document.documentElement.setAttribute('data-is-demo', 'true')
     }`,
     `
+    // Redirect root path to /components
+    if (location.pathname === '/' || location.pathname === '/index.html' || location.pathname === '/index') {
+      location.replace('/components');
+    }
+    `,
+    `
     if (!location.port) {
       // Enable Google Analytics
       window.dataLayer = window.dataLayer || [];

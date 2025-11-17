@@ -5,9 +5,16 @@ gapless: true
 ---
 
 <script>
-  if (typeof window !== 'undefined' && window.location.pathname === '/') {
-    window.location.replace('/components');
-  }
+  (function() {
+    if (typeof window !== 'undefined') {
+      var path = window.location.pathname;
+      if (path === '/' || path === '/index.html' || path === '/index') {
+        window.location.replace('/components');
+      }
+    }
+  })();
 </script>
 
-<code src="./components/home-page.tsx" inline="true"></code>
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-size: 16px;">
+  Redirecting to components...
+</div>
