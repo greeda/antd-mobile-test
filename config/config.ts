@@ -85,12 +85,6 @@ const config: IConfig = {
   // ssr: {},
   exportStatic: {},
   dynamicImport: {},
-  routes: [
-    {
-      path: '/',
-      redirect: '/components',
-    },
-  ],
 }
 
 export default config
