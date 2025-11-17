@@ -1,19 +1,31 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, Suspense } from 'react'
 import Footer from './components/Footer'
 import Main from './components/Main'
 import styles from './home-page.less'
 
 export default () => {
   useEffect(() => {
-    const algoliaSearch: any =
-      document.querySelector('.__dumi-default-search-input') || {}
-    algoliaSearch.placeholder = '搜索'
+    try {
+      const algoliaSearch: any =
+        document.querySelector('.__dumi-default-search-input') || {}
+      if (algoliaSearch.placeholder !== undefined) {
+        algoliaSearch.placeholder = '搜索'
+      }
+    } catch (e) {
+      console.warn('Failed to set algolia search placeholder:', e)
+    }
   }, [])
 
   return (
     <div className={styles.homePage}>
-      <Main />
-      <Footer />
+      <Suspense
+        fallback={
+          <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
+        }
+      >
+        <Main />
+        <Footer />
+      </Suspense>
     </div>
   )
 }
