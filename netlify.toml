@@ -5,9 +5,10 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# SPA fallback - only redirect if file doesn't exist
+# Netlify will automatically serve static files if they exist
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
 
