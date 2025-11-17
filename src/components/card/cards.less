@@ -1,0 +1,12 @@
+@class-prefix-cards: ~'adm-cards';
+
+.@{class-prefix-cards} {
+  width: 100%;
+  box-sizing: border-box;
+  transition: gap 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &-item {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+}

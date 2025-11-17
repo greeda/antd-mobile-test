@@ -1,0 +1,126 @@
+@class-prefix-fab: ~'adm-fab';
+
+.@{class-prefix-fab} {
+  --z-index: 1000;
+  --size: 56px;
+  --border-radius: 50%;
+  --background: var(--adm-color-primary, #1677ff);
+  --color: var(--adm-color-white, #fff);
+
+  position: fixed;
+  z-index: var(--z-index);
+  bottom: 24px;
+
+  &-right {
+    right: 24px;
+  }
+
+  &-left {
+    left: 24px;
+  }
+
+  &-action {
+    --background: var(--adm-color-success, #00b578);
+  }
+
+  &-main {
+    width: var(--size);
+    height: var(--size);
+    background: var(--background);
+    color: var(--color);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.2s ease;
+    user-select: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    outline: none;
+
+    &:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  &-items {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+    bottom: calc(var(--size) + 12px);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
+
+    &-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .@{class-prefix-fab}-right & {
+      right: 0;
+      align-items: flex-end;
+    }
+
+    .@{class-prefix-fab}-left & {
+      left: 0;
+      align-items: flex-start;
+    }
+  }
+
+  &-item-wrapper {
+    pointer-events: auto;
+    transform-origin: center;
+  }
+
+  &-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: var(--adm-color-white, #fff);
+    color: var(--adm-color-text, #333);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    outline: none;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  &-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+  }
+}
