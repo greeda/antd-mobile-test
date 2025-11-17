@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "build": "gulp",
-    "build-doc": "dumi build && echo '!.*' > dist/.surgeignore",
+    "build-doc": "cross-env NODE_OPTIONS=--openssl-legacy-provider dumi build && echo '!.*' > dist/.surgeignore",
     "postinstall": "husky install",
     "lint": "eslint . && stylelint \"**/*.{css,less,scss}\"",
     "lint:fix": "prettier --write . && eslint --fix . && stylelint --fix \"**/*.{css,less,scss}\"",
