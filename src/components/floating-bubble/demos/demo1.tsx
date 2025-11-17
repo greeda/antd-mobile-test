@@ -1,11 +1,5 @@
 import { FAB, Toast } from 'antd-mobile'
-import {
-  HeartOutline,
-  LinkOutline,
-  ReloadOutline,
-  ShareOutline,
-  StarOutline,
-} from 'antd-mobile-icons'
+import { HeartOutline, LinkOutline, StarOutline } from 'antd-mobile-icons'
 import { DemoDescription } from 'demos'
 import React from 'react'
 
@@ -43,8 +37,6 @@ export default () => {
       </DemoDescription>
       <FAB position='right'>
         <FAB.Item icon={<LinkOutline />} onClick={handleLink} />
-        <FAB.Item icon={<ShareOutline />} onClick={handleShare} />
-        <FAB.Item icon={<ReloadOutline />} onClick={handleRefresh} />
         <FAB.Item icon={<HeartOutline />} onClick={handleLike} />
         <FAB.Item icon={<StarOutline />} onClick={handleStar} />
       </FAB>

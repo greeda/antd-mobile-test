@@ -8,6 +8,7 @@ import { usePropsValue } from '../../utils/use-props-value'
 import { mergeProps } from '../../utils/with-default-props'
 import { CheckIcon } from './check-icon'
 import { CheckboxGroupContext } from './group-context'
+import { DefaultIcon } from './default-icon'
 import { IndeterminateIcon } from './indeterminate-icon'
 import { NativeInput } from './native-input'
 

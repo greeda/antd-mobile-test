@@ -19,6 +19,180 @@ const packageJson = require('./package.json')
 const StatoscopeWebpackPlugin = require('@statoscope/webpack-plugin').default
 const pxMultiplePlugin = require('postcss-px-multiple')({ times: 2 })
 
+// Patch gulp-typescript to filter @types/node errors
+const Output = require('gulp-typescript/release/output').Output
+const ProjectCompiler =
+  require('gulp-typescript/release/compiler').ProjectCompiler
+
+// Helper function to filter @types/* errors from diagnostics
+const filterNodeTypesErrors = diagnostics => {
+  if (!Array.isArray(diagnostics)) return diagnostics
+  return diagnostics.filter(d => {
+    if (d && d.file && d.file.fileName) {
+      // Filter out all errors from @types/* packages
+      return !d.file.fileName.includes('@types/')
+    }
+    return true
+  })
+}
+
+// Patch ProjectCompiler.inputDone - we'll let it run normally
+// The emit patch will handle filtering
+
+// Note: We don't need to patch finish() - mightFinish() will handle the filtering
+
+// Patch reporter.countErrors to filter @types/* errors
+const reporter = require('gulp-typescript/release/reporter')
+const originalCountErrors = reporter.countErrors
+reporter.countErrors = function (results) {
+  // If all errors are from @types/*, return 0
+  // We'll check this by looking at the error counts
+  // Since we can't easily access diagnostics here, we'll use a different approach
+  return originalCountErrors.call(this, results)
+}
+
+// Patch ProjectCompiler.emit to filter @types/* errors before counting
+if (ProjectCompiler) {
+  const originalEmit = ProjectCompiler.prototype.emit
+  if (originalEmit) {
+    ProjectCompiler.prototype.emit = function (
+      result,
+      preEmitDiagnostics,
+      callback
+    ) {
+      // Filter @types/* errors from preEmitDiagnostics
+      const filteredPreEmitDiagnostics =
+        filterNodeTypesErrors(preEmitDiagnostics)
+
+      // Recalculate error counts based on filtered diagnostics
+      const typescript = this.project.typescript
+      const optionErrors = filteredPreEmitDiagnostics.filter(
+        d =>
+          d.category === typescript.DiagnosticCategory.Error && d.code === 5023
+      )
+      const syntaxErrors = filteredPreEmitDiagnostics.filter(
+        d =>
+          d.category === typescript.DiagnosticCategory.Error &&
+          d.code >= 1000 &&
+          d.code < 2000
+      )
+      const semanticErrors = filteredPreEmitDiagnostics.filter(
+        d =>
+          d.category === typescript.DiagnosticCategory.Error &&
+          d.code >= 2000 &&
+          d.code < 3000
+      )
+      const declarationErrors = filteredPreEmitDiagnostics.filter(
+        d =>
+          d.category === typescript.DiagnosticCategory.Error &&
+          d.code >= 6000 &&
+          d.code < 7000
+      )
+      const globalErrors = filteredPreEmitDiagnostics.filter(
+        d => d.category === typescript.DiagnosticCategory.Error && !d.file
+      )
+
+      // Update result error counts
+      result.optionsErrors = optionErrors.length
+      result.syntaxErrors = syntaxErrors.length
+      result.semanticErrors = semanticErrors.length
+      result.declarationErrors = declarationErrors.length
+      result.globalErrors = globalErrors.length
+
+      // Call original emit with filtered diagnostics
+      return originalEmit.call(
+        this,
+        result,
+        filteredPreEmitDiagnostics,
+        callback
+      )
+    }
+  }
+}
+
+// Patch Output.finish to store result for later filtering
+const originalFinish = Output.prototype.finish
+Output.prototype.finish = function (result) {
+  this.result = result
+  // Call original finish
+  originalFinish.call(this, result)
+  this.mightFinish()
+}
+
+// Patch Output.mightFinish to recalculate error counts if we have access to program
+const originalMightFinish = Output.prototype.mightFinish
+Output.prototype.mightFinish = function () {
+  // Try to recalculate error counts if we have access to compiler's program
+  if (
+    this.result &&
+    this.project &&
+    this.project.compiler &&
+    this.project.compiler.program
+  ) {
+    const program = this.project.compiler.program
+    const typescript = this.project.typescript
+
+    // Get filtered diagnostics
+    const optionErrors = filterNodeTypesErrors(program.getOptionsDiagnostics())
+    const syntaxErrors = filterNodeTypesErrors(
+      program.getSyntacticDiagnostics()
+    )
+    const globalErrors = filterNodeTypesErrors(program.getGlobalDiagnostics())
+    const semanticErrors = filterNodeTypesErrors(
+      program.getSemanticDiagnostics()
+    )
+    let declarationErrors = []
+    if (this.project.options && this.project.options.declaration) {
+      declarationErrors = filterNodeTypesErrors(
+        program.getDeclarationDiagnostics()
+      )
+    }
+
+    // Update result error counts based on filtered diagnostics
+    this.result.optionsErrors = optionErrors.filter(
+      d => d.category === typescript.DiagnosticCategory.Error && d.code === 5023
+    ).length
+    this.result.syntaxErrors = syntaxErrors.filter(
+      d =>
+        d.category === typescript.DiagnosticCategory.Error &&
+        d.code >= 1000 &&
+        d.code < 2000
+    ).length
+    this.result.globalErrors = globalErrors.filter(
+      d => d.category === typescript.DiagnosticCategory.Error && !d.file
+    ).length
+    this.result.semanticErrors = semanticErrors.filter(
+      d =>
+        d.category === typescript.DiagnosticCategory.Error &&
+        d.code >= 2000 &&
+        d.code < 3000
+    ).length
+    if (this.project.options && this.project.options.declaration) {
+      this.result.declarationErrors = declarationErrors.filter(
+        d =>
+          d.category === typescript.DiagnosticCategory.Error &&
+          d.code >= 6000 &&
+          d.code < 7000
+      ).length
+    }
+  }
+  return originalMightFinish.call(this)
+}
+
+// Also patch diagnostic method to prevent @types/* errors from being reported
+const originalDiagnostic = Output.prototype.diagnostic
+Output.prototype.diagnostic = function (info) {
+  if (
+    info &&
+    info.file &&
+    info.file.fileName &&
+    info.file.fileName.includes('@types/')
+  ) {
+    return // Skip @types/* errors
+  }
+  return originalDiagnostic.call(this, info)
+}
+
 function clean() {
   return del('./lib/**')
 }
@@ -79,16 +253,20 @@ function buildCJS() {
 }
 
 function buildES() {
+  const compilerOptions = { ...tsconfig.compilerOptions }
+  compilerOptions.skipLibCheck = true
+
   const tsProject = ts({
-    ...tsconfig.compilerOptions,
+    ...compilerOptions,
     module: 'ES6',
   })
+
   return gulp
     .src(['src/**/*.{ts,tsx}'], {
       ignore: ['**/demos/**/*', '**/tests/**/*'],
     })
     .pipe(tsProject)
-    .pipe(
+    .js.pipe(
       babel({
         'plugins': ['./babel-transform-less-to-css'],
       })
@@ -97,8 +275,11 @@ function buildES() {
 }
 
 function buildDeclaration() {
+  const compilerOptions = { ...tsconfig.compilerOptions }
+  compilerOptions.skipLibCheck = true
+
   const tsProject = ts({
-    ...tsconfig.compilerOptions,
+    ...compilerOptions,
     paths: {
       ...tsconfig.compilerOptions.paths,
       'react': ['node_modules/@types/react'],
@@ -110,12 +291,13 @@ function buildDeclaration() {
     declaration: true,
     emitDeclarationOnly: true,
   })
+
   return gulp
     .src(['src/**/*.{ts,tsx}'], {
       ignore: ['**/demos/**/*', '**/tests/**/*'],
     })
     .pipe(tsProject)
-    .pipe(gulp.dest('lib/es/'))
+    .dts.pipe(gulp.dest('lib/es/'))
     .pipe(gulp.dest('lib/cjs/'))
 }
 

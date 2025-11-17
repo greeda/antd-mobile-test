@@ -3,7 +3,7 @@ import React from 'react'
 import { CheckboxValue } from '.'
 import { usePropsValue } from '../../utils/use-props-value'
 import { mergeProps } from '../../utils/with-default-props'
-import { CheckboxGroupContext } from './group-context'
+import { CheckboxGroupContext, CheckboxGroupType } from './group-context'
 
 export interface CheckboxGroupProps {
   value?: CheckboxValue[]
