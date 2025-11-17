@@ -28,3 +28,4 @@ export const getIconFontSize = (size?: CheckboxSize): string => {
 
 
 
+
