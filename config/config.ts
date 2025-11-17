@@ -81,7 +81,11 @@ const config: IConfig = {
       ],
     },
   },
-  plugins: ['./.dumi/plugin-gallery/index.ts', './.dumi/plugin-theme/index.ts'],
+  plugins: [
+    // Gallery plugin disabled to fix 404 errors on static files
+    // './.dumi/plugin-gallery/index.ts',
+    './.dumi/plugin-theme/index.ts',
+  ],
   // ssr: {},
   exportStatic: {},
   dynamicImport: {},

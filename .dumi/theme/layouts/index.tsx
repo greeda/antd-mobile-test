@@ -48,18 +48,19 @@ const Layout: React.FC<IRouteComponentProps> = ({ children, location }) => {
   })} ${updatedTimeIns.toLocaleTimeString([], { hour12: false })}`
   const [darkSwitch, setDarkSwitch] = useState<boolean>(false)
 
-  useLayoutEffect(() => {
-    if (window !== window.parent) {
-      return
-    }
+  // Gallery redirect disabled - gallery plugin is disabled
+  // useLayoutEffect(() => {
+  //   if (window !== window.parent) {
+  //     return
+  //   }
 
-    if (
-      window.innerWidth <= 600 &&
-      !window.location.pathname.startsWith('/gallery')
-    ) {
-      window.location.href = '/gallery'
-    }
-  }, [])
+  //   if (
+  //     window.innerWidth <= 600 &&
+  //     !window.location.pathname.startsWith('/gallery')
+  //   ) {
+  //     window.location.href = '/gallery'
+  //   }
+  // }, [])
 
   return (
     <div
